@@ -1,77 +1,30 @@
-<body class="bg-gray-100 min-h-screen p-6">
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <script>
+if (location.protocol !== 'https:') {
+  location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+}
+</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Início</title>
+  <link rel="stylesheet" href="style/main.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Bem-vindo ao SOS Plantão</h1>
 
-  <div style="max-width: 1200px; margin: 0 auto; overflow: hidden;">
-
-    <!-- Coluna esquerda: Módulo Plantão -->
-    <div style="width: 70%; float: left; padding-right: 2rem;">
-      <div class="card bg-white rounded-2xl shadow p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-          <i data-lucide="stethoscope" class="w-6 h-6"></i>
-          Início de Plantão
-        </h2>
-
-        <div class="mb-4">
-          <label for="select-local" class="block mb-1 font-medium">Local do Plantão</label>
-          <div class="flex gap-2">
-            <select id="select-local" class="w-full px-2 py-2 border rounded"></select>
-            <button id="add-local" class="btn" title="Adicionar novo local">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="mb-4">
-          <label for="select-periodo" class="block mb-1 font-medium">Período do Plantão</label>
-          <div class="flex gap-2">
-            <select id="select-periodo" class="w-full px-2 py-2 border rounded"></select>
-            <button id="add-periodo" class="btn" title="Adicionar novo período">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-3 mt-6">
-          <button id="btn-iniciar-plantao" class="btn bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2">
-            <i data-lucide="play-circle" class="w-5 h-5"></i> Iniciar Plantão
-          </button>
-
-          <button id="btn-encerrar-plantao" class="btn bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-2 hidden">
-            <i data-lucide="square" class="w-5 h-5"></i> Encerrar Plantão
-          </button>
-
-          <a href="plantoes.html" target="_blank" class="btn bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2">
-            <i data-lucide="clock" class="w-5 h-5"></i> Ver Plantões Anteriores
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Coluna direita: Menu -->
-    <div style="width: 28%; float: right;" class="bg-white rounded-2xl shadow p-6 h-fit self-start">
-      <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-        <i data-lucide="menu" class="w-5 h-5"></i> Menu
-      </h3>
-      <div class="flex flex-col gap-3">
-        <button class="btn" onclick="abrirModulo('atendimento/indexatendimento.html')">📋 Atendimento</button>
-        <button class="btn" onclick="abrirModulo('receitas/indexreceita.html')">📝 Receitas</button>
-        <button class="btn" onclick="abrirModulo('atendimento/registros.html')">📋 Consultar Registros</button>
-        <button class="btn" onclick="abrirModulo('atendimento/examespadrao.html')">➕ Novo Exame Físico Padrão</button>
-      </div>
-    </div>
-
+    <button class="btn" onclick="abrirModulo('atendimento/indexatendimento.html')">📋 Atendimento</button>
+    <button class="btn" onclick="abrirModulo('receitas/indexreceita.html')">📝 Receitas</button>
+    <button class="btn" onclick="abrirModulo('atendimento/registros.html')">📋 Consultar Registros</button>
+    <button class="btn" onclick="abrirModulo('atendimento/examespadrao.html')">➕ Novo Exame Físico Padrão</button>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="js/firebase.js"></script>
-  <script src="js/inicio.js"></script>
-  <script src="js/protecao.js"></script>
   <script>
-    lucide.createIcons();
-    function abrirModulo(url) {
-      window.open(url, "_blank");
+    function abrirModulo(pagina) {
+      window.open(pagina, '_blank');
     }
   </script>
 </body>
+</html>
