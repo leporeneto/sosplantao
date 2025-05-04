@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+if (location.protocol !== 'https:') {
+  location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+}
+</script>
+  <meta charset="UTF-8">
+  <title>Formulário Médico</title>
+  <link rel="stylesheet" href="../style/atend.css">
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="modal">
+    <h2>Formulário Médico Atendimento</h2>
+
+    <form id="formularioMedico">
+      <div id="painelPlantao" class="bloco-info">
+  <p>
+    <strong>Intervalo de hora:</strong> <span id="intervaloHora">--:-- - --:--</span> &nbsp;&nbsp;
+    <strong>Total nesta hora:</strong> <span id="totalHora">0</span> &nbsp;&nbsp;
+    <strong>Total no plantão:</strong> <span id="totalPlantao">0</span> &nbsp;&nbsp;
+    <button type="button" onclick="verResumo()">📊 Ver completo</button>
+  </p>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; margin-top: 10px;">
+  <button type="button" id="btnIniciar" onclick="iniciarAtendimento()">▶️ Iniciar Atendimento</button>
+  <button type="button" id="btnFinalizar" onclick="finalizarAtendimento()" disabled>⏹ Finalizar Atendimento</button>
+  <span><strong>Tempo de atendimento:</strong> <span id="cronometro">00:00:00</span></span>
+</div>
+      <label>Nome do Paciente:
+        <input type="text" name="nome" required>
+      </label>
+
+      <label>Sexo:</label>
+      <div>
+        <label><input type="radio" name="sexo" value="homem" checked> Masculino</label>
+        <label><input type="radio" name="sexo" value="mulher"> Feminino</label>
+      </div>
+
+      <label>Acompanhado:
+        <select name="acompanhado" id="acompanhado">
+          <option value="nao">Não</option>
+          <option value="sim">Sim</option>
+        </select>
+      </label>
+
+      <div id="acompanhanteCampo" class="hidden">
+        <label>Nome e grau de parentesco:
+          <input type="text" name="acompanhanteInfo">
+        </label>
+      </div>
+
+      <label>Queixas:
+        <textarea name="queixas"></textarea>
+      </label>
+
+      <label>Alergias:
+        <input type="text" name="alergias">
+      </label>
+
+      <label>Medicamentos em uso:
+        <input type="text" name="medicamentos">
+      </label>
+
+      <label>Comorbidades:
+        <input type="text" name="comorbidades">
+      </label>
+
+      <div id="dumContainer" class="hidden">
+        <label>Data da Última Menstruação (DUM):
+          <input type="date" name="dum" id="dum">
+        </label>
+        <label><input type="checkbox" name="dumInfo" value="naoSabe" id="naoSabeCheck"> Não sabe informar a data exata</label>
+        <input type="text" id="dumTexto" class="hidden" placeholder="Descreva">
+        <label><input type="checkbox" name="dumInfo" value="menopausa"> Menopausa</label>
+        <label><input type="checkbox" name="dumInfo" value="gestante"> Gestante</label>
+        <label><input type="checkbox" name="dumInfo" value="lactante"> Lactante</label>
+        <label><input type="checkbox" name="dumInfo" value="histerectomia"> Histerectomia</label>
+        <label><input type="checkbox" name="dumInfo" value="diu"> DIU/AC contínuo</label>
+      </div>
+
+      <label for="exameFisico">Exame Físico:</label>
+      <select id="exameFisico" name="exameFisico"></select>
+
+      <div id="examesCampos" class="hidden">
+        <label>GERAL:</label><textarea name="exame_geral"></textarea>
+        <label>NEURO:</label><textarea name="exame_neuro"></textarea>
+        <label>AR:</label><textarea name="exame_ar"></textarea>
+        <label>ACV:</label><textarea name="exame_acv"></textarea>
+        <label>ABD:</label><textarea name="exame_abd"></textarea>
+        <label>MMII:</label><textarea name="exame_mmii"></textarea>
+        <label>OUTROS:</label><textarea name="exame_outros"></textarea>
+      </div>
+
+      <label>Hipótese Diagnóstica:
+        <input type="text" name="diagnostico">
+      </label>
+
+      <fieldset>
+        <legend>Condutas:</legend>
+        <label><input type="checkbox" id="medicacaoCheck"> Medicação hospitalar</label>
+        <input type="text" id="medicacaoTexto" class="hidden" placeholder="Descreva a medicação">
+
+        <label><input type="checkbox" id="examesCheck"> Exames</label>
+        <input type="text" id="examesTexto" class="hidden" placeholder="Descreva os exames">
+
+        <label><input type="checkbox" id="reavaliarCheck"> Reavaliar</label>
+        <label><input type="checkbox" id="receitaCheck"> Receita</label>
+
+        <label><input type="checkbox" id="encaminhamentoCheck"> Encaminhamento</label>
+        <div id="encaminhamentoBox" class="hidden">
+          <label><input type="checkbox" name="encaminhamentoTipo" value="PS"> PS</label>
+          <label><input type="checkbox" name="encaminhamentoTipo" value="AMB"> AMB</label>
+          <input type="text" id="encaminhamentoTexto" placeholder="Especialidade">
+        </div>
+
+        <label><input type="checkbox" id="cuidadosCheck"> Cuidados</label>
+        <label><input type="checkbox" id="atestadoCheck"> Atestado</label>
+        <label><input type="checkbox" id="altaCheck"> Alta</label>
+      </fieldset>
+
+      <button type="button" id="gerarTexto">Gerar Texto</button>
+    </form>
+
+    <div id="blocoResultado" class="hidden">
+      <h3>Texto Final</h3>
+      <textarea id="textoGerado" rows="16" style="width: 100%; line-height: 1.6; margin-top: 10px;"></textarea>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+        <button class="btn-azul" onclick="copiarTexto()">📋 Copiar</button>
+        <button class="btn-verde" onclick="novoAtendimento()">➕ Novo Atendimento</button>
+        <button id="btnEncaminhamento" class="btn-verde hidden" onclick="copiarEncaminhamento()">📋 Gerar Encaminhamento</button>
+      </div>
+    </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

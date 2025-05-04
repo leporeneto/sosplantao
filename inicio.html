@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <script>
+if (location.protocol !== 'https:') {
+  location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+}
+</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Início</title>
+  <link rel="stylesheet" href="style/main.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Bem-vindo ao SOS Plantão</h1>
+
+    <button class="btn" onclick="abrirModulo('atendimento/indexatendimento.html')">📋 Atendimento</button>
+    <button class="btn" onclick="abrirModulo('receitas/indexreceita.html')">📝 Receitas</button>
+    <button class="btn" onclick="abrirModulo('atendimento/registros.html')">📋 Consultar Registros</button>
+    <button class="btn" onclick="abrirModulo('atendimento/examespadrao.html')">➕ Novo Exame Físico Padrão</button>
+  </div>
+
+  <script>
+    function abrirModulo(pagina) {
+      window.open(pagina, '_blank');
+    }
+  </script>
+</body>
+</html>

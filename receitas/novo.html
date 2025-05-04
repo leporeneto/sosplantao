@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novo Medicamento</title>
+  <link rel="stylesheet" href="../style/main.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Novo Medicamento</h1>
+
+    <label for="classe">Classe:</label>
+    <select id="classe" onchange="toggleNovaClasse()">
+      <option value="">Escolha uma classe</option>
+      <option value="Nova">+ Nova Classe</option>
+    </select>
+    <input type="text" id="novaClasse" placeholder="Digite a nova classe" class="hidden" />
+
+    <label for="nome">Nome do Medicamento:</label>
+    <input type="text" id="nome" placeholder="Ex: Dipirona 500mg" />
+
+    <label for="via">Via de Administração:</label>
+    <select id="via" onchange="toggleNovaVia()">
+      <option value="">Escolha a via</option>
+      <option value="Oral">Oral</option>
+      <option value="IM">IM</option>
+      <option value="IV">IV</option>
+      <option value="Inalatória">Inalatória</option>
+      <option value="Tópica">Tópica</option>
+      <option value="Nova">+ Nova Via</option>
+    </select>
+    <input type="text" id="novaVia" placeholder="Digite a nova via" class="hidden" />
+
+    <label for="posologia">Posologia:</label>
+    <input type="text" id="posologia" placeholder="Ex: Tomar 1 cp de 6/6h" />
+
+    <label for="duracao">Duração:</label>
+    <input type="text" id="duracao" placeholder="Ex: Se dor ou febre" />
+
+    <button onclick="salvarMedicamento()">💾 Salvar Medicamento</button>
+    <button onclick="voltar()">⬅ Voltar para Receita</button>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfGykxsSTGYo6SKGhhUT1r4MMPhHIl9a0",
+      authDomain: "receitas-medicas-64a41.firebaseapp.com",
+      projectId: "receitas-medicas-64a41",
+      storageBucket: "receitas-medicas-64a41.firebasestorage.app",
+      messagingSenderId: "981098459263",
+      appId: "1:981098459263:web:9d5fe43b027a1860580f4a",
+      measurementId: "G-EGM2BJCLVE"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function toggleNovaClasse() {
+      const select = document.getElementById("classe");
+      const input = document.getElementById("novaClasse");
+      input.classList.toggle("hidden", select.value !== "Nova");
+    }
+
+    function toggleNovaVia() {
+      const select = document.getElementById("via");
+      const input = document.getElementById("novaVia");
+      input.classList.toggle("hidden", select.value !== "Nova");
+    }
+
+    async function salvarMedicamento() {
+      const classe = document.getElementById("classe").value === "Nova" ? document.getElementById("novaClasse").value.trim() : document.getElementById("classe").value;
+      const via = document.getElementById("via").value === "Nova" ? document.getElementById("novaVia").value.trim() : document.getElementById("via").value;
+      const nome = document.getElementById("nome").value.trim();
+      const posologia = document.getElementById("posologia").value.trim();
+      const duracao = document.getElementById("duracao").value.trim();
+
+      if (!classe || !via || !nome || !posologia || !duracao) {
+        alert("Preencha todos os campos.");
+        return;
+      }
+
+      try {
+        await db.collection("medicamentos").add({ classe, via, nome, posologia, duracao });
+        alert("Medicamento salvo com sucesso!");
+        window.location.href = "index.html";
+      } catch (e) {
+        alert("Erro ao salvar: " + e.message);
+      }
+    }
+
+    function voltar() {
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

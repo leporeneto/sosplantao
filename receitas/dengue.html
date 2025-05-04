@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Receita Dengue</title>
+<link rel="stylesheet" href="../style/main.css">
+</head>
+<body>
+  <h2>Gerador de Receita Médica</h2>
+
+  <label for="peso">Informe o peso do paciente (kg):</label>
+  <input type="number" id="peso" min="1" step="0.1" placeholder="Ex: 75">
+  <button onclick="gerar()">Gerar Receita</button>
+  <button onclick="limpar()">Limpar</button>
+
+  <textarea id="texto" placeholder="A receita aparecerá aqui..." readonly></textarea>
+
+  <div class="botoes">
+    <button onclick="copiar()">📋 Copiar Receita</button>
+  </div>
+
+  <script>
+    function gerar() {
+      const peso = parseFloat(document.getElementById('peso').value);
+      if (isNaN(peso) || peso <= 0) {
+        alert("Por favor, insira um peso válido.");
+        return;
+      }
+
+      const liqTotal = peso * 0.06; // total em litros
+      const x = Math.ceil((liqTotal / 3) * 10) / 10; // arredondado pra cima, 1 casa decimal
+      const y = Math.ceil((liqTotal * 2 / 3) * 10) / 10;
+
+      const receita = `USO ORAL:
+
+1- Dipirona 500mg
+Tomar 02 cp de 6/6h se dor ou febre
+
+ou
+
+2- Paracetamol 500mg
+Tomar 01 cp de 6/6h se dor ou febre
+
+3- Ondansetrona 8mg
+Tomar 01 cp de 8/8h se náuseas ou vômitos
+
+4- Loratadina 10mg
+Tomar 01 cp de 12/12h por até 5 dias, se coceira
+
+5- Sais de reidratação oral
+Dissolver 1 envelope em 1 litro de água fervida ou filtrada e consumir ${x} litros em 24h
+
+ORIENTAÇÕES:
+
+1. Fazer ingesta de líquidos claros (água, chá, suco, água de coco, etc), ao menos ${y} litros por dia;
+2. NÃO fazer uso de antiinflamatórios (p.ex.: nimesulida, diclofenaco, ibuprofeno, cetoprofeno, naproxeno) nem o uso de AAS ("aspirina");
+3. Pode alternar dipirona x paracetamol de 4/4h se necessário;
+4. Atentar ao sintomas e sinais de alarme, retornar precocemente ao pronto atendimento se:
+- Febre persistente superior a 48hrs;
+- Hipotensão (pressão baixa);
+- Vômitos persistente;
+- Dor em abdominal forte e persistente;
+- Sangramentos espontâneos;
+- Tontura/desmaio;
+`;
+
+      document.getElementById('texto').value = receita;
+    }
+
+    function limpar() {
+      document.getElementById('peso').value = "";
+      document.getElementById('texto').value = "";
+    }
+
+    function copiar() {
+      const texto = document.getElementById('texto');
+      texto.select();
+      document.execCommand('copy');
+      alert('Receita copiada com sucesso!');
+    }
+  </script>
+</body>
+</html>
