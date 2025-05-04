@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Início do Plantão</title>
+  <link rel="stylesheet" href="style/main.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    if (location.protocol !== 'https:') {
+      location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+    }
+  </script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+
+  <div class="bg-white shadow-lg rounded-2xl p-6 w-full max-w-xl">
+    <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+      <i data-lucide="stethoscope" class="w-6 h-6"></i>
+      Início de Plantão
+    </h2>
+
+    <!-- Local -->
+    <div class="mb-4">
+      <label for="select-local" class="block font-medium mb-1">Local do Plantão</label>
+      <div class="flex gap-2">
+        <select id="select-local" class="w-full px-2 py-2 border rounded"></select>
+        <button id="add-local" class="btn" title="Adicionar novo local">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Período -->
+    <div class="mb-6">
+      <label for="select-periodo" class="block font-medium mb-1">Período do Plantão</label>
+      <div class="flex gap-2">
+        <select id="select-periodo" class="w-full px-2 py-2 border rounded"></select>
+        <button id="add-periodo" class="btn" title="Adicionar novo período">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Botão Iniciar -->
+    <button id="btn-iniciar-plantao" class="btn bg-green-600 hover:bg-green-700 text-white w-full flex items-center justify-center gap-2">
+      <i data-lucide="play-circle" class="w-5 h-5"></i>
+      Iniciar Plantão
+    </button>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase.js"></script>
+  <script src="js/protecao.js"></script>
+  <script src="js/inicio.js"></script> <!-- reaproveita a lógica dos selects -->
+  <script>
+    lucide.createIcons();
+
+    document.getElementById("btn-iniciar-plantao").addEventListener("click", () => {
+      const local = document.getElementById("select-local").value;
+      const periodo = document.getElementById("select-periodo").value;
+
+      if (!local || !periodo) {
+        alert("Selecione um local e período do plantão.");
+        return;
+      }
+
+      const plantao = {
+        local,
+        periodo,
+        inicio: new Date().toISOString(),
+        id: "PLT_" + Date.now()
+      };
+
+      localStorage.setItem("plantaoAtual", JSON.stringify(plantao));
+      window.location.href = "atendimento/indexatendimento.html";
+    });
+  </script>
+</body>
+</html>
