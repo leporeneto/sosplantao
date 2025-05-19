@@ -72,24 +72,27 @@
       const btnIniciar = document.getElementById("btn-iniciar-plantao");
 
       function carregarOpcoes(colecao, selectElement) {
-        db.collection(colecao)
-          .where("uid", "==", uid)
-          .orderBy("nome")
-          .get()
-          .then(snapshot => {
-            selectElement.innerHTML = "";
-            snapshot.forEach(doc => {
-              const option = document.createElement("option");
-              option.value = doc.data().nome;
-              option.textContent = doc.data().nome;
-              selectElement.appendChild(option);
-            });
-          })
-          .catch(error => {
-            console.error("Erro ao carregar opções:", error);
-            alert("Erro ao carregar " + colecao);
-          });
-      }
+  db.collection(colecao)
+    .where("uid", "==", uid)
+    .get()
+    .then(snapshot => {
+      const docsComNome = snapshot.docs.filter(doc => doc.data().nome);
+      docsComNome.sort((a, b) =>
+        a.data().nome.localeCompare(b.data().nome));
+
+      selectElement.innerHTML = "";
+      docsComNome.forEach(doc => {
+        const option = document.createElement("option");
+        option.value = doc.data().nome;
+        option.textContent = doc.data().nome;
+        selectElement.appendChild(option);
+      });
+    })
+    .catch(error => {
+      console.error("Erro ao carregar opções:", error);
+      alert("Erro ao carregar LOCAIS-PLANTAO");
+    });
+}
 
       function adicionarOpcao(colecao, label, selectElement) {
         const nome = prompt(`Digite o novo ${label}:`);
