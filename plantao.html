@@ -71,20 +71,21 @@
       const btnAddPeriodo = document.getElementById("add-periodo");
       const btnIniciar = document.getElementById("btn-iniciar-plantao");
 
-      function carregarOpcoes(colecao, selectElement) {
+      ffunction carregarOpcoes(colecao, selectElement) {
   db.collection(colecao)
     .where("uid", "==", uid)
     .get()
     .then(snapshot => {
-      const docsComNome = snapshot.docs.filter(doc => doc.data().nome);
-      docsComNome.sort((a, b) =>
-        a.data().nome.localeCompare(b.data().nome));
+      const items = snapshot.docs
+        .map(doc => doc.data())
+        .filter(data => data.nome)
+        .sort((a, b) => a.nome.localeCompare(b.nome));
 
       selectElement.innerHTML = "";
-      docsComNome.forEach(doc => {
+      items.forEach(item => {
         const option = document.createElement("option");
-        option.value = doc.data().nome;
-        option.textContent = doc.data().nome;
+        option.value = item.nome;
+        option.textContent = item.nome;
         selectElement.appendChild(option);
       });
     })
