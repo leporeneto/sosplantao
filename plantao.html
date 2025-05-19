@@ -51,30 +51,26 @@
 
   <!-- Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="js/firebase.js"></script>
-  <script src="js/protecao.js"></script>
-  <script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/protecao.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
-  
+
     firebase.auth().onAuthStateChanged(user => {
       if (!user) return;
-  
+
       const uid = user.uid;
       const db = firebase.firestore();
-  
+
       const localSelect = document.getElementById("select-local");
       const periodoSelect = document.getElementById("select-periodo");
       const btnAddLocal = document.getElementById("add-local");
       const btnAddPeriodo = document.getElementById("add-periodo");
-  
-      carregarOpcoes("locais_plantao", localSelect);
-      carregarOpcoes("periodos_plantao", periodoSelect);
-  
-      btnAddLocal.addEventListener("click", () => adicionarOpcao("locais_plantao", "Local", localSelect));
-      btnAddPeriodo.addEventListener("click", () => adicionarOpcao("periodos_plantao", "Período", periodoSelect));
-  
+      const btnIniciar = document.getElementById("btn-iniciar-plantao");
+
       function carregarOpcoes(colecao, selectElement) {
         db.collection(colecao)
           .where("uid", "==", uid)
@@ -91,47 +87,54 @@
           })
           .catch(error => {
             console.error("Erro ao carregar opções:", error);
-            alert("Erro ao carregar dados de " + colecao);
+            alert("Erro ao carregar " + colecao);
           });
       }
-  
+
       function adicionarOpcao(colecao, label, selectElement) {
         const nome = prompt(`Digite o novo ${label}:`);
         if (!nome) return;
-  
         db.collection(colecao).add({ uid, nome })
           .then(() => {
             alert(`${label} adicionado com sucesso.`);
             carregarOpcoes(colecao, selectElement);
           })
-          .catch(error => {
-            console.error("Erro ao adicionar:", error);
-            alert("Erro ao adicionar novo " + label);
+          .catch(e => {
+            alert("Erro ao adicionar: " + e.message);
           });
       }
-  
-      // Botão iniciar
-      document.getElementById("btn-iniciar-plantao").addEventListener("click", () => {
+
+      btnAddLocal.addEventListener("click", () =>
+        adicionarOpcao("locais_plantao", "Local", localSelect));
+
+      btnAddPeriodo.addEventListener("click", () =>
+        adicionarOpcao("periodos_plantao", "Período", periodoSelect));
+
+      btnIniciar.addEventListener("click", () => {
         const local = localSelect.value;
         const periodo = periodoSelect.value;
-  
+
         if (!local || !periodo) {
-          alert("Selecione um local e período do plantão.");
+          alert("Selecione o local e o período do plantão.");
           return;
         }
-  
+
         const plantao = {
           local,
           periodo,
           inicio: new Date().toISOString(),
           id: "PLT_" + Date.now()
         };
-  
+
         localStorage.setItem("plantaoAtual", JSON.stringify(plantao));
         window.location.href = "atendimento/indexatendimento.html";
       });
-    });
-  </script>
 
+      // Carregar dados ao abrir a página
+      carregarOpcoes("locais_plantao", localSelect);
+      carregarOpcoes("periodos_plantao", periodoSelect);
+    });
+  });
+</script>
 </body>
 </html>
