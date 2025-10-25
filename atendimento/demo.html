@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Hospital - Exemplo</title>
+  <link rel="stylesheet" href="../style/atend.css">
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f4f7fb;
+      padding: 30px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+      color: #004080;
+      font-size: 1.8rem;
+      letter-spacing: 0.5px;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+      font-size: 1.2rem;
+      color: #004080;
+    }
+
+    textarea {
+      width: 100%;
+      height: 220px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 15px;
+      line-height: 1.6;
+      resize: none;
+      background-color: #fff;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background-color: #0078d4;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005ea6;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>SISTEMA HOSPITAL - Exemplo</h1>
+
+  <section>
+    <h2>ATENDIMENTO</h2>
+    <textarea id="txtAtendimento" placeholder="Cole ou gere o texto de atendimento aqui..."></textarea>
+    <button onclick="copiarTexto('txtAtendimento')">📋 Copiar Atendimento</button>
+  </section>
+
+  <section>
+    <h2>RECEITAS</h2>
+    <textarea id="txtReceitas" placeholder="Cole ou gere o texto de receita aqui..."></textarea>
+    <button onclick="copiarTexto('txtReceitas')">📋 Copiar Receita</button>
+  </section>
+
+  <section>
+    <h2>ENCAMINHAMENTO</h2>
+    <textarea id="txtEncaminhamento" placeholder="Cole ou gere o texto de encaminhamento aqui..."></textarea>
+    <button onclick="copiarTexto('txtEncaminhamento')">📋 Copiar Encaminhamento</button>
+  </section>
+
+  <footer>
+    <p>© 2025 SOS Plantão — Página de Demonstração</p>
+  </footer>
+
+  <script>
+    function copiarTexto(id) {
+      const txt = document.getElementById(id).value;
+      if (!txt.trim()) {
+        alert("Nada para copiar!");
+        return;
+      }
+      navigator.clipboard.writeText(txt).then(() => {
+        alert("Texto copiado!");
+      });
+    }
+  </script>
+</body>
+</html>
