@@ -1,0 +1,84 @@
+let plantaoAtivo = false;
+let tempoPlantao = 0;
+let tempoAtendimento = 0;
+let totalAtendimentos = 0;
+
+let intervaloPlantao;
+let intervaloAtendimento;
+
+// === CONTADORES ===
+function formatarTempo(segundos) {
+  const h = String(Math.floor(segundos / 3600)).padStart(2, "0");
+  const m = String(Math.floor((segundos % 3600) / 60)).padStart(2, "0");
+  const s = String(segundos % 60).padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+function atualizarPainel() {
+  document.getElementById("tempoPlantao").textContent = formatarTempo(tempoPlantao);
+  document.getElementById("cronometro").textContent = formatarTempo(tempoAtendimento);
+  document.getElementById("totalAtendimentos").textContent = totalAtendimentos;
+}
+
+function iniciarAtendimento() {
+  // Inicia o plantão se ainda não tiver iniciado
+  if (!plantaoAtivo) {
+    plantaoAtivo = true;
+    intervaloPlantao = setInterval(() => {
+      tempoPlantao++;
+      atualizarPainel();
+    }, 1000);
+  }
+
+  // Inicia cronômetro do atendimento
+  clearInterval(intervaloAtendimento);
+  tempoAtendimento = 0;
+  intervaloAtendimento = setInterval(() => {
+    tempoAtendimento++;
+    atualizarPainel();
+  }, 1000);
+
+  document.getElementById("btnIniciar").disabled = true;
+  document.getElementById("btnFinalizar").disabled = false;
+}
+
+function finalizarAtendimento() {
+  clearInterval(intervaloAtendimento);
+  totalAtendimentos++;
+  tempoAtendimento = 0;
+  atualizarPainel();
+
+  document.getElementById("btnIniciar").disabled = false;
+  document.getElementById("btnFinalizar").disabled = true;
+}
+
+function encerrarPlantao() {
+  if (!plantaoAtivo) {
+    alert("Nenhum plantão ativo no momento.");
+    return;
+  }
+
+  clearInterval(intervaloPlantao);
+  clearInterval(intervaloAtendimento);
+  plantaoAtivo = false;
+
+  const registro = {
+    data: new Date().toLocaleString("pt-BR"),
+    duracaoPlantao: formatarTempo(tempoPlantao),
+    atendimentos: totalAtendimentos
+  };
+
+  let historico = JSON.parse(localStorage.getItem("plantoes")) || [];
+  historico.push(registro);
+  localStorage.setItem("plantoes", JSON.stringify(historico));
+
+  alert(`✅ Plantão encerrado!\nDuração: ${registro.duracaoPlantao}\nAtendimentos: ${registro.atendimentos}`);
+
+  tempoPlantao = 0;
+  tempoAtendimento = 0;
+  totalAtendimentos = 0;
+  atualizarPainel();
+}
+
+document.getElementById("btnEncerrarPlantao").addEventListener("click", encerrarPlantao);
+atualizarPainel();

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+if (location.protocol !== 'https:') {
+  location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+}
+</script>
+  <script src="js/protecao.js" defer></script>
+  <meta charset="UTF-8">
+  <title>Admin - Usuários</title>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Usuários Cadastrados</h1>
+  <ul id="listaUsuarios"></ul>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfGykxsSTGYo6SKGhhUT1r4MMPhHIl9a0",
+      authDomain: "receitas-medicas-64a41.firebaseapp.com",
+      projectId: "receitas-medicas-64a41"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        db.collection("atendimentos").get().then(snapshot => {
+          const uids = [...new Set(snapshot.docs.map(d => d.data().uid))];
+          const ul = document.getElementById("listaUsuarios");
+          uids.forEach(uid => {
+            const li = document.createElement("li");
+            li.textContent = uid;
+            ul.appendChild(li);
+          });
+        });
+      } else {
+        location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>

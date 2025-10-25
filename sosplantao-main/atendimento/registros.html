@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+if (location.protocol !== 'https:') {
+  location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+}
+</script>
+  <meta charset="UTF-8">
+  <title>Registros de Atendimento</title>
+  <link rel="stylesheet" href="../style/main.css">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      text-align: left;
+    }
+    .filtros {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Registros de Atendimento</h1>
+
+    <div class="filtros">
+      <input type="text" id="filtroNome" placeholder="Buscar por nome..." oninput="filtrarTabela()">
+      <input type="date" id="filtroData" oninput="filtrarTabela()">
+    </div>
+
+    <table id="tabelaRegistros">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Hora</th>
+          <th>Nome</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="textoFinal" class="hidden">
+      <h2>Texto Final</h2>
+      <textarea id="textoGerado" readonly></textarea>
+      <button onclick="copiarTexto()">📋 Copiar Texto</button>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfGykxsSTGYo6SKGhhUT1r4MMPhHIl9a0",
+      authDomain: "receitas-medicas-64a41.firebaseapp.com",
+      projectId: "receitas-medicas-64a41"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let todosRegistros = [];
+
+    db.collection("atendimentos").orderBy("data").get().then(snapshot => {
+      todosRegistros = snapshot.docs.map(doc => doc.data());
+      renderizarTabela(todosRegistros);
+    });
+
+    function renderizarTabela(registros) {
+      const tbody = document.querySelector("#tabelaRegistros tbody");
+      tbody.innerHTML = "";
+
+      registros.forEach(reg => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${reg.data || ""}</td>
+          <td>${reg.hora || ""}</td>
+          <td>${reg.nome || ""}</td>
+          <td><button onclick="mostrarTexto(\`${reg.textoFinal?.replace(/`/g, "'") || ""}\`)">Ver</button></td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function mostrarTexto(texto) {
+      document.getElementById("textoGerado").value = texto;
+      document.getElementById("textoFinal").classList.remove("hidden");
+    }
+
+    function copiarTexto() {
+      const textarea = document.getElementById("textoGerado");
+      textarea.select();
+      document.execCommand("copy");
+      alert("Texto copiado!");
+    }
+
+    function filtrarTabela() {
+      const nomeFiltro = document.getElementById("filtroNome").value.toLowerCase();
+      const dataFiltro = document.getElementById("filtroData").value;
+
+      const filtrados = todosRegistros.filter(reg => {
+        const nomeOk = reg.nome?.toLowerCase().includes(nomeFiltro);
+        const dataOk = !dataFiltro || reg.data === dataFiltro;
+        return nomeOk && dataOk;
+      });
+
+      renderizarTabela(filtrados);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+if (location.protocol !== 'https:') {
+  location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+}
+</script>
+  <meta charset="UTF-8" />
+  <title>Exames Físicos Padrão</title>
+  <link rel="stylesheet" href="../style/main.css" />
+  <style>
+    textarea {
+      width: 100%;
+      height: 80px;
+      margin-top: 5px;
+    }
+    .item {
+      margin-bottom: 20px;
+    }
+    .patologia-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    .patologia-list button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 2px;
+    }
+    .hidden { display: none; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Exames Físicos Padrão</h1>
+
+    <input type="text" id="filtro" placeholder="Buscar patologia..." oninput="filtrarPatologias()" />
+    <div class="patologia-list" id="listaPatologias"></div>
+
+    <div id="editor" class="hidden">
+      <h2 id="tituloPatologia"></h2>
+      <div id="camposExame"></div>
+      <button onclick="salvarAlteracoes()">💾 Salvar Alterações</button>
+      <button onclick="excluirPatologia()">🗑️ Excluir</button>
+    </div>
+
+    <hr>
+
+    <h2>Adicionar Nova Patologia</h2>
+    <label>Nome da nova patologia:</label>
+    <input type="text" id="novaPatologiaNome" placeholder="Ex: Conjuntivite" />
+
+    <h3>Selecionar Sistemas Básicos:</h3>
+    <div id="sistemasPadrao"></div>
+
+    <h3>Adicionar Sistema Personalizado:</h3>
+    <input type="text" id="novoSistemaNome" placeholder="Nome do sistema (ex: ORO)" />
+    <textarea id="novoSistemaNormal" placeholder="Texto padrão 'Normal'"></textarea>
+    <textarea id="novoSistemaTexto" placeholder="Texto alterado para a patologia..."></textarea>
+    <button onclick="adicionarSistemaPersonalizado()">Adicionar Sistema Personalizado</button>
+
+    <button onclick="salvarNovaPatologia()">💾 Salvar Nova Patologia</button>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfGykxsSTGYo6SKGhhUT1r4MMPhHIl9a0",
+      authDomain: "receitas-medicas-64a41.firebaseapp.com",
+      projectId: "receitas-medicas-64a41"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let patologias = [];
+    let docIdAtual = "";
+    let novoExame = {};
+
+    let textosNormais = {};
+
+    // Carrega os textos normais da coleção exame_fisico_sistemas
+    db.collection("exame_fisico_sistemas").limit(1).get().then(snapshot => {
+      const doc = snapshot.docs[0];
+      if (doc) textosNormais = doc.data();
+      renderizarSistemasPadrao();
+    });
+
+    function renderizarSistemasPadrao() {
+      const sistemaContainer = document.getElementById("sistemasPadrao");
+      sistemaContainer.innerHTML = "";
+      Object.entries(textosNormais).forEach(([key, texto]) => {
+        const id = "check_" + key;
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <label><input type="checkbox" id="${id}" onchange="toggleSistemaPadrao('${key}')"> ${key.toUpperCase()}</label>
+          <textarea id="area_${key}" class="hidden">${texto}</textarea>
+        `;
+        sistemaContainer.appendChild(div);
+      });
+    }
+
+    function toggleSistemaPadrao(sistema) {
+      const checked = document.getElementById("check_" + sistema).checked;
+      const area = document.getElementById("area_" + sistema);
+      area.classList.toggle("hidden", !checked);
+
+      if (!checked) delete novoExame[sistema];
+      else {
+        novoExame[sistema] = area.value;
+        area.addEventListener("input", () => {
+          novoExame[sistema] = area.value;
+        });
+      }
+    }
+
+    function carregarPatologias() {
+      db.collection("exames_fisicos").get().then(snapshot => {
+        patologias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderizarLista(patologias);
+      });
+    }
+
+    function renderizarLista(lista) {
+      const div = document.getElementById("listaPatologias");
+      div.innerHTML = "";
+      lista.forEach(p => {
+        const btn = document.createElement("button");
+        btn.textContent = p.patologia;
+        btn.onclick = () => abrirEditor(p);
+        div.appendChild(btn);
+      });
+    }
+
+    function abrirEditor(patologia) {
+      docIdAtual = patologia.id;
+      document.getElementById("tituloPatologia").textContent = patologia.patologia;
+      const container = document.getElementById("camposExame");
+      container.innerHTML = "";
+
+      Object.entries(patologia.exame).forEach(([sistema, texto]) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <label>${sistema.toUpperCase()}:</label>
+          <textarea name="${sistema}">${texto}</textarea>
+        `;
+        container.appendChild(div);
+      });
+
+      document.getElementById("editor").classList.remove("hidden");
+    }
+
+    function salvarAlteracoes() {
+      const inputs = document.querySelectorAll("#camposExame textarea");
+      const campos = {};
+      inputs.forEach(t => {
+        if (t.value.trim()) campos[t.name.toLowerCase()] = t.value.trim();
+      });
+
+      db.collection("exames_fisicos").doc(docIdAtual).update({ exame: campos })
+        .then(() => alert("Alterações salvas com sucesso!"));
+    }
+
+    function excluirPatologia() {
+      if (!confirm("Tem certeza que deseja excluir esta patologia?")) return;
+      db.collection("exames_fisicos").doc(docIdAtual).delete()
+        .then(() => {
+          alert("Patologia excluída.");
+          location.reload();
+        });
+    }
+
+    function filtrarPatologias() {
+      const termo = document.getElementById("filtro").value.toLowerCase();
+      const filtradas = patologias.filter(p => p.patologia.toLowerCase().includes(termo));
+      renderizarLista(filtradas);
+    }
+
+    function adicionarSistemaPersonalizado() {
+      const nome = document.getElementById("novoSistemaNome").value.trim().toLowerCase();
+      const textoNormal = document.getElementById("novoSistemaNormal").value.trim();
+      const textoAlterado = document.getElementById("novoSistemaTexto").value.trim();
+
+      if (!nome || !textoNormal || !textoAlterado) return alert("Preencha nome, texto normal e alterado.");
+
+      novoExame[nome] = textoAlterado;
+
+      // Atualiza coleção padrão com o texto "normal"
+      const docRef = db.collection("exame_fisico_sistemas").limit(1);
+      docRef.get().then(snapshot => {
+        if (!snapshot.empty) {
+          const id = snapshot.docs[0].id;
+          db.collection("exame_fisico_sistemas").doc(id).update({
+            [nome]: textoNormal
+          });
+        }
+      });
+
+      alert(`Sistema personalizado '${nome}' adicionado.`);
+      document.getElementById("novoSistemaNome").value = "";
+      document.getElementById("novoSistemaNormal").value = "";
+      document.getElementById("novoSistemaTexto").value = "";
+    }
+
+    function salvarNovaPatologia() {
+      const nome = document.getElementById("novaPatologiaNome").value.trim();
+      if (!nome) return alert("Informe o nome da nova patologia.");
+
+      const nomeLower = nome.toLowerCase();
+      const existe = patologias.find(p => p.patologia.toLowerCase() === nomeLower);
+      if (existe) {
+        alert("Já existe um exame físico para essa patologia.");
+        return;
+      }
+
+      db.collection("exames_fisicos").add({
+        patologia: nome,
+        exame: novoExame
+      }).then(() => {
+        alert(`Exame físico padrão para ${nome} salvo com sucesso!`);
+        location.reload();
+      }).catch(e => {
+        console.error("Erro ao salvar:", e);
+        alert("Erro ao salvar.");
+      });
+    }
+
+    carregarPatologias();
+  </script>
+</body>
+</html>

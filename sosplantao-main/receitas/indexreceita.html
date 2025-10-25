@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gerador de Receitas Médica</title>
+  <link rel="stylesheet" href="../style/main.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Gerador de Receita Médica</h1>
+
+    <label for="buscaReceitaPadrao">Receita Padrão:</label>
+    <input type="text" id="buscaReceitaPadrao" placeholder="Digite o nome da receita..." oninput="filtrarReceitas()" autocomplete="off" />
+    <ul id="listaReceitasPadrao"></ul>
+
+    <label for="pesquisa">Pesquisar Medicamento:</label>
+    <input type="text" id="pesquisa" placeholder="Digite para buscar..." oninput="filtrarMedicamentos()" />
+
+    <ul id="listaMedicamentos"></ul>
+
+    <h3>Medicamentos Selecionados:</h3>
+    <div id="selecionados"></div>
+
+    <button class="btn-azul" onclick="gerarReceita()">Gerar Receita</button>
+    <button class="btn-verde" onclick="copiarReceita()">📋 Copiar Receita</button>
+    <button onclick="novaReceita()">➕ Nova Receita</button>
+    
+    <textarea id="textoReceita" placeholder="Sua receita aparecerá aqui..." readonly></textarea>
+
+    <button onclick="abrirCadastro()">➕ Adicionar Medicamento</button>
+    <button onclick="salvarReceitaPadrao()">💾 Salvar Receita como Padrão</button>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfGykxsSTGYo6SKGhhUT1r4MMPhHIl9a0",
+      authDomain: "receitas-medicas-64a41.firebaseapp.com",
+      projectId: "receitas-medicas-64a41",
+      storageBucket: "receitas-medicas-64a41.firebasestorage.app",
+      messagingSenderId: "981098459263",
+      appId: "1:981098459263:web:9d5fe43b027a1860580f4a",
+      measurementId: "G-EGM2BJCLVE"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let medicamentos = [];
+    let selecionados = [];
+    let receitasPadrao = [];
+
+    async function carregarMedicamentos() {
+      const snapshot = await db.collection("medicamentos").get();
+      medicamentos = snapshot.docs.map(doc => doc.data());
+    }
+
+    async function carregarReceitasPadrao() {
+      const snapshot = await db.collection("receitas_padrao").get();
+      receitasPadrao = snapshot.docs.map(doc => doc.data());
+    }
+
+    document.getElementById("buscaReceitaPadrao").addEventListener("focus", () => {
+      filtrarReceitas(); // mostra tudo ao focar
+    });
+
+    document.addEventListener("click", function (e) {
+      const input = document.getElementById("buscaReceitaPadrao");
+      const lista = document.getElementById("listaReceitasPadrao");
+    
+      if (!input.contains(e.target) && !lista.contains(e.target)) {
+        lista.innerHTML = ""; // esconde sugestões se clicar fora
+      }
+    });
+
+    function filtrarReceitas() {
+      const termo = document.getElementById("buscaReceitaPadrao").value.toLowerCase();
+      const ul = document.getElementById("listaReceitasPadrao");
+      ul.innerHTML = "";
+    
+      receitasPadrao
+        .filter(r => r.nome.toLowerCase().includes(termo))
+        .forEach(receita => {
+          const li = document.createElement("li");
+          li.textContent = receita.nome;
+          li.onclick = () => selecionarReceita(receita);
+          ul.appendChild(li);
+        });
+    }
+
+    function selecionarReceita(receita) {
+      document.getElementById("buscaReceitaPadrao").value = receita.nome;
+      document.getElementById("listaReceitasPadrao").innerHTML = "";
+
+      if (receita.texto.startsWith("http")) {
+        window.open(receita.texto, "_blank");
+      } else {
+        document.getElementById("textoReceita").value = receita.texto;
+        selecionados = [];
+        atualizarSelecionados();
+      }
+    }
+
+    function filtrarMedicamentos() {
+      const termo = document.getElementById("pesquisa").value.toLowerCase();
+      const ul = document.getElementById("listaMedicamentos");
+      ul.innerHTML = "";
+
+      medicamentos
+        .filter(m => m.nome.toLowerCase().includes(termo))
+        .slice(0, 10)
+        .forEach(med => {
+          const li = document.createElement("li");
+          li.textContent = med.nome;
+          li.style.cursor = "pointer";
+          li.onclick = () => adicionarMedicamento(med);
+          ul.appendChild(li);
+        });
+    }
+
+    function adicionarMedicamento(med) {
+      if (selecionados.find(m => m.nome === med.nome)) {
+        alert("Medicamento já adicionado.");
+        return;
+      }
+      selecionados.push(med);
+      atualizarSelecionados();
+    }
+
+    function atualizarSelecionados() {
+      const container = document.getElementById("selecionados");
+      container.innerHTML = "";
+
+      selecionados.forEach((med, i) => {
+        const div = document.createElement("div");
+        div.className = "med-item";
+
+        const info = document.createElement("span");
+        info.textContent = `${med.nome}`;
+
+        const btn = document.createElement("button");
+        btn.className = "remove-btn";
+        btn.textContent = "Remover";
+        btn.onclick = () => {
+          selecionados.splice(i, 1);
+          atualizarSelecionados();
+        };
+
+        div.appendChild(info);
+        div.appendChild(btn);
+        container.appendChild(div);
+      });
+    }
+
+    function gerarReceita() {
+      if (selecionados.length === 0) {
+        alert("Adicione medicamentos ou selecione uma receita padrão.");
+        return;
+      }
+
+      const porVia = {};
+      selecionados.forEach(med => {
+        const via = med.via.toUpperCase();
+        if (!porVia[via]) porVia[via] = [];
+        porVia[via].push(med);
+      });
+
+      let texto = "";
+      for (const via in porVia) {
+        texto += `USO ${via}:\n\n`;
+        porVia[via].forEach((med, i) => {
+          texto += `${i + 1}- ${med.nome}\n${med.posologia}, ${med.duracao}\n\n`;
+        });
+      }
+
+      document.getElementById("textoReceita").value = texto.trim();
+    }
+
+    function copiarReceita() {
+      const textarea = document.getElementById("textoReceita");
+      textarea.select();
+      document.execCommand("copy");
+      alert("Receita copiada!");
+    }
+
+    function novaReceita() {
+      selecionados = [];
+      document.getElementById("textoReceita").value = "";
+      document.getElementById("pesquisa").value = "";
+      document.getElementById("buscaReceitaPadrao").value = "";
+      atualizarSelecionados();
+      document.getElementById("listaMedicamentos").innerHTML = "";
+      document.getElementById("listaReceitasPadrao").innerHTML = "";
+    }
+
+    function abrirCadastro() {
+      window.location.href = "novo.html";
+    }
+
+    function salvarReceitaPadrao() {
+      const receitaTexto = document.getElementById("textoReceita").value;
+      if (!receitaTexto) {
+        alert("Gere uma receita antes de salvar.");
+        return;
+      }
+
+      const nome = prompt("Digite um nome para salvar esta receita:");
+      if (!nome) {
+        alert("Nome da receita não informado.");
+        return;
+      }
+
+      db.collection("receitas_padrao").add({
+        nome: nome,
+        texto: receitaTexto
+      }).then(() => {
+        alert("Receita salva como padrão com sucesso!");
+        carregarReceitasPadrao(); // atualiza sugestões
+      }).catch((error) => {
+        alert("Erro ao salvar: " + error.message);
+      });
+    }
+
+    // Inicialização
+    carregarMedicamentos();
+    carregarReceitasPadrao();
+  </script>
+</body>
+</html>
